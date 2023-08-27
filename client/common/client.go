@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net"
 	"time"
+    "os"
+	"os/signal"
+    "syscall"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -23,9 +26,12 @@ type Client struct {
 	conn   net.Conn
 }
 
+var signalChan chan (os.Signal) = make(chan os.Signal, 1)
+
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
 func NewClient(config ClientConfig) *Client {
+	signal.Notify(signalChan, syscall.SIGTERM)
 	client := &Client{
 		config: config,
 	}
@@ -46,6 +52,15 @@ func (c *Client) createClientSocket() error {
 	}
 	c.conn = conn
 	return nil
+}
+
+// Graceful shutdown of the client
+func (c *Client) shutdownClient() {
+	<-signalChan
+	log.Debugf("action: shutdown_client | result: in_progress | client_id: %v", c.config.ID)
+	c.conn.Close()
+	log.Debugf("action: shutdown_client | result: success | client_id: %v", c.config.ID)
+	os.Exit(0)
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
@@ -93,6 +108,7 @@ loop:
 
 		// Wait a time between sending one message and the next one
 		time.Sleep(c.config.LoopPeriod)
+		go c.shutdownClient()
 	}
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
