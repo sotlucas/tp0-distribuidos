@@ -8,16 +8,16 @@ Where n is the number of clients to generate
 
 
 def main(n):
-    file = open("docker-compose-dev.yaml", "w")
-    file.write('version: "3.9"\n')
-    file.write("name: tp0\n")
-    file.write("services:\n")
-    server(file)
-    file.write("\n")
-    for i in range(int(n)):
-        client(file, i + 1)
+    with open("docker-compose-dev.yaml", "w") as file:
+        file.write('version: "3.9"\n')
+        file.write("name: tp0\n")
+        file.write("services:\n")
+        server(file)
         file.write("\n")
-    networks(file)
+        for i in range(int(n)):
+            client(file, i + 1)
+            file.write("\n")
+        networks(file)
 
 
 def server(file):
