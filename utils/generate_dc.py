@@ -33,6 +33,8 @@ def server(file):
     file.write("      - LOGGING_LEVEL=DEBUG\n")
     file.write("    networks:\n")
     file.write("      - testing_net\n")
+    file.write("    volumes:\n")
+    file.write("      - ./server/config.ini:/config.ini\n")
 
 
 def client(file, id):
@@ -50,6 +52,8 @@ def client(file, id):
     file.write("      - testing_net\n")
     file.write("    depends_on:\n")
     file.write("      - server\n")
+    file.write("    volumes:\n")
+    file.write("      - ./client/config.yaml:/config.yaml\n")
 
 
 def networks(file):
