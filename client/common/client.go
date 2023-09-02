@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"net"
-	"time"
-    "os"
+	"os"
 	"os/signal"
-    "syscall"
+	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -18,6 +18,14 @@ type ClientConfig struct {
 	ServerAddress string
 	LoopLapse     time.Duration
 	LoopPeriod    time.Duration
+}
+
+type UserBet struct {
+	Nombre     string
+	Apellido   string
+	Documento  string
+	Nacimiento string
+	Numero     string
 }
 
 // Client Entity that encapsulates how
@@ -45,7 +53,7 @@ func (c *Client) createClientSocket() error {
 	conn, err := net.Dial("tcp", c.config.ServerAddress)
 	if err != nil {
 		log.Fatalf(
-	        "action: connect | result: fail | client_id: %v | error: %v",
+			"action: connect | result: fail | client_id: %v | error: %v",
 			c.config.ID,
 			err,
 		)
@@ -64,7 +72,7 @@ func (c *Client) shutdownClient() {
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop() {
+func (c *Client) StartClientLoop(userBet UserBet) {
 	// autoincremental msgID to identify every message sent
 	msgID := 1
 
@@ -73,9 +81,9 @@ loop:
 	for timeout := time.After(c.config.LoopLapse); ; {
 		select {
 		case <-timeout:
-	        log.Infof("action: timeout_detected | result: success | client_id: %v",
-                c.config.ID,
-            )
+			log.Infof("action: timeout_detected | result: success | client_id: %v",
+				c.config.ID,
+			)
 			break loop
 		default:
 		}
@@ -86,9 +94,9 @@ loop:
 		// TODO: Modify the send to avoid short-write
 		fmt.Fprintf(
 			c.conn,
-			"[CLIENT %v] Message N°%v\n",
+			"[CLIENT %v] Message %v\n",
 			c.config.ID,
-			msgID,
+			userBet,
 		)
 		msg, err := bufio.NewReader(c.conn).ReadString('\n')
 		msgID++
@@ -96,15 +104,15 @@ loop:
 
 		if err != nil {
 			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-                c.config.ID,
+				c.config.ID,
 				err,
 			)
 			return
 		}
 		log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
-            c.config.ID,
-            msg,
-        )
+			c.config.ID,
+			msg,
+		)
 
 		// Wait a time between sending one message and the next one
 		time.Sleep(c.config.LoopPeriod)
