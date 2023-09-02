@@ -2,7 +2,6 @@ package common
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -70,30 +69,6 @@ func (c *Client) shutdownClient() {
 	c.conn.Close()
 	log.Debugf("action: shutdown_client | result: success | client_id: %v", c.config.ID)
 	os.Exit(0)
-}
-
-func (c *Client) sendUserBet(userBet UserBet) {
-	payload := fmt.Sprintf(
-		"%s:%s:%s:%s:%s:%s",
-		c.config.ID,
-		userBet.Nombre,
-		userBet.Apellido,
-		userBet.Documento,
-		userBet.Nacimiento,
-		userBet.Numero,
-	)
-
-	payloadBytes := []byte(payload)
-	payloadLength := len(payloadBytes)
-
-	lengthBytes := []byte(fmt.Sprintf("%d", payloadLength))
-	// Pad length to 4 bytes
-	for len(lengthBytes) < 4 {
-		lengthBytes = append([]byte("0"), lengthBytes...)
-	}
-
-	payloadBytes = append(lengthBytes, payloadBytes...)
-	c.conn.Write(payloadBytes)
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
