@@ -43,6 +43,7 @@ func NewClient(config ClientConfig) *Client {
 	client := &Client{
 		config: config,
 	}
+	go client.shutdownClient()
 	return client
 }
 
@@ -71,6 +72,31 @@ func (c *Client) shutdownClient() {
 	os.Exit(0)
 }
 
+func (c *Client) sendUserBet(userBet UserBet) {
+	// TODO: Modify the send to avoid short-write
+	payload := fmt.Sprintf(
+		"%s:%s:%s:%s:%s:%s",
+		c.config.ID,
+		userBet.Nombre,
+		userBet.Apellido,
+		userBet.Documento,
+		userBet.Nacimiento,
+		userBet.Numero,
+	)
+
+	payloadBytes := []byte(payload)
+	payloadLength := len(payloadBytes)
+
+	lengthBytes := []byte(fmt.Sprintf("%d", payloadLength))
+	// Pad length to 4 bytes
+	for len(lengthBytes) < 4 {
+		lengthBytes = append([]byte("0"), lengthBytes...)
+	}
+
+	payloadBytes = append(lengthBytes, payloadBytes...)
+	c.conn.Write(payloadBytes)
+}
+
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop(userBet UserBet) {
 	// autoincremental msgID to identify every message sent
@@ -91,13 +117,7 @@ loop:
 		// Create the connection the server in every loop iteration. Send an
 		c.createClientSocket()
 
-		// TODO: Modify the send to avoid short-write
-		fmt.Fprintf(
-			c.conn,
-			"[CLIENT %v] Message %v\n",
-			c.config.ID,
-			userBet,
-		)
+		c.sendUserBet(userBet)
 		msg, err := bufio.NewReader(c.conn).ReadString('\n')
 		msgID++
 		c.conn.Close()
@@ -114,9 +134,20 @@ loop:
 			msg,
 		)
 
+		if msg == "OK\n" {
+			log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
+				userBet.Documento,
+				userBet.Numero,
+			)
+		} else {
+			log.Errorf("action: apuesta_enviada | result: fail | dni: %v | numero: %v",
+				userBet.Documento,
+				userBet.Numero,
+			)
+		}
+
 		// Wait a time between sending one message and the next one
 		time.Sleep(c.config.LoopPeriod)
-		go c.shutdownClient()
 	}
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
