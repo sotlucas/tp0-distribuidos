@@ -2,7 +2,8 @@ import socket
 import logging
 import signal
 
-from common.utils import Bet, store_bets
+import common.utils as utils
+import common.protocol as protocol
 
 
 class Server:
@@ -38,20 +39,16 @@ class Server:
         client socket will also be closed
         """
         try:
-            addr = client_sock.getpeername()
-            length = client_sock.recv(4).decode("utf-8")
-            msg = client_sock.recv(int(length)).decode("utf-8")
-            logging.info(
-                f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg}"
-            )
+            msg = protocol.read_message(client_sock)
+            bet = utils.bet_from_string(msg)
 
-            bet = Bet(*msg.split(":"))
-            store_bets([bet])
+            utils.store_bets([bet])
+
             logging.info(
                 f"action: apuesta_almacenada | result: success | client_id: {bet.agency} | dni: {bet.document} | numero: {bet.number}"
             )
 
-            client_sock.send("OK\n".encode("utf-8"))
+            protocol.send_ok(client_sock)
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
