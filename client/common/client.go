@@ -73,7 +73,6 @@ func (c *Client) shutdownClient() {
 }
 
 func (c *Client) sendUserBet(userBet UserBet) {
-	// TODO: Modify the send to avoid short-write
 	payload := fmt.Sprintf(
 		"%s:%s:%s:%s:%s:%s",
 		c.config.ID,

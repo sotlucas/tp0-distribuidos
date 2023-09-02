@@ -38,20 +38,19 @@ class Server:
         client socket will also be closed
         """
         try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode("utf-8")
             addr = client_sock.getpeername()
+            length = client_sock.recv(4).decode("utf-8")
+            msg = client_sock.recv(int(length)).decode("utf-8")
             logging.info(
                 f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg}"
             )
 
-            bet = Bet(*msg[4:].split(":"))
+            bet = Bet(*msg.split(":"))
             store_bets([bet])
             logging.info(
                 f"action: apuesta_almacenada | result: success | client_id: {bet.agency} | dni: {bet.document} | numero: {bet.number}"
             )
 
-            # TODO: Modify the send to avoid short-writes
             client_sock.send("OK\n".encode("utf-8"))
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
