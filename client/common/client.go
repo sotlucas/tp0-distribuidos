@@ -2,14 +2,13 @@ package common
 
 import (
 	"bufio"
-	"encoding/csv"
-	"io"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,14 +19,6 @@ type ClientConfig struct {
 	LoopPeriod    time.Duration
 	BetsFilepath  string
 	BatchSize     int
-}
-
-type UserBet struct {
-	Nombre     string
-	Apellido   string
-	Documento  string
-	Nacimiento string
-	Numero     string
 }
 
 // Client Entity that encapsulates how
@@ -77,7 +68,7 @@ func (c *Client) shutdownClient() {
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
 	// TODO: loopear todos los batches
-	bets := getBets(c.config.BetsFilepath, c.config.BatchSize)
+	bets := utils.GetBets(c.config.BetsFilepath, c.config.BatchSize)
 
 	c.createClientSocket()
 
@@ -107,36 +98,4 @@ func (c *Client) StartClientLoop() {
 	time.Sleep(c.config.LoopPeriod)
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
-}
-
-// Reads a batch of bets from a csv file
-func getBets(betsFilepath string, batchSize int) []UserBet {
-	f, err := os.Open(betsFilepath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	csvReader := csv.NewReader(f)
-	bets := make([]UserBet, 0)
-	for i := 0; i < batchSize; i++ {
-		record, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		userBet := UserBet{
-			Nombre:     record[0],
-			Apellido:   record[1],
-			Documento:  record[2],
-			Nacimiento: record[3],
-			Numero:     record[4],
-		}
-
-		bets = append(bets, userBet)
-	}
-	return bets
 }
