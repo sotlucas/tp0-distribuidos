@@ -35,6 +35,7 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("loop", "period")
 	v.BindEnv("log", "level")
 	v.BindEnv("bets_filepath", "BETS_FILEPATH")
+	v.BindEnv("batch", "size")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -74,10 +75,11 @@ func InitLogger(logLevel string) error {
 // PrintConfig Print all the configuration parameters of the program.
 // For debugging purposes only
 func PrintConfig(v *viper.Viper) {
-	logrus.Infof("action: config | result: success | client_id: %s | server_address: %s | bets_filepath: %s | log_level: %s",
+	logrus.Infof("action: config | result: success | client_id: %s | server_address: %s | bets_filepath: %s | batch_size: %s | log_level: %s",
 		v.GetString("id"),
-		v.GetString("bets_filepath"),
 		v.GetString("server.address"),
+		v.GetString("bets_filepath"),
+		v.GetString("batch.size"),
 		v.GetString("log.level"),
 	)
 }
@@ -100,6 +102,7 @@ func main() {
 		ID:            v.GetString("id"),
 		LoopPeriod:    v.GetDuration("loop.period"),
 		BetsFilepath:  v.GetString("bets_filepath"),
+		BatchSize:     v.GetInt("batch.size"),
 	}
 
 	client := common.NewClient(clientConfig)

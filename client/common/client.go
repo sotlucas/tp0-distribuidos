@@ -19,6 +19,7 @@ type ClientConfig struct {
 	ServerAddress string
 	LoopPeriod    time.Duration
 	BetsFilepath  string
+	BatchSize     int
 }
 
 type UserBet struct {
@@ -75,7 +76,7 @@ func (c *Client) shutdownClient() {
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	for _, userBet := range getBets(c.config.BetsFilepath) {
+	for _, userBet := range getBets(c.config.BetsFilepath, c.config.BatchSize) {
 		c.createClientSocket()
 
 		c.sendUserBet(userBet)
@@ -114,7 +115,7 @@ func (c *Client) StartClientLoop() {
 }
 
 // Reads a batch of bets from a csv file
-func getBets(betsFilepath string) []UserBet {
+func getBets(betsFilepath string, batchSize int) []UserBet {
 	f, err := os.Open(betsFilepath)
 	if err != nil {
 		log.Fatal(err)
@@ -122,9 +123,8 @@ func getBets(betsFilepath string) []UserBet {
 	defer f.Close()
 
 	csvReader := csv.NewReader(f)
-	n := 4 // TODO: sacar de environment variable
 	bets := make([]UserBet, 0)
-	for i := 0; i < n; i++ {
+	for i := 0; i < batchSize; i++ {
 		record, err := csvReader.Read()
 		if err == io.EOF {
 			break
