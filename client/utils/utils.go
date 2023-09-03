@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-// UserBet Represents a bet made by a user
-type UserBet struct {
+// Bet Represents a bet made by a user
+type Bet struct {
 	Nombre     string
 	Apellido   string
 	Documento  string
@@ -17,7 +17,7 @@ type UserBet struct {
 }
 
 // Reads a batch of bets from a csv file
-func GetBets(betsFilepath string, batchSize int) []UserBet {
+func GetBets(betsFilepath string, batchSize int) []Bet {
 	f, err := os.Open(betsFilepath)
 	if err != nil {
 		log.Fatal(err)
@@ -25,7 +25,7 @@ func GetBets(betsFilepath string, batchSize int) []UserBet {
 	defer f.Close()
 
 	csvReader := csv.NewReader(f)
-	bets := make([]UserBet, 0)
+	bets := make([]Bet, 0)
 	for i := 0; i < batchSize; i++ {
 		record, err := csvReader.Read()
 		if err == io.EOF {
@@ -35,7 +35,7 @@ func GetBets(betsFilepath string, batchSize int) []UserBet {
 			log.Fatal(err)
 		}
 
-		userBet := UserBet{
+		bet := Bet{
 			Nombre:     record[0],
 			Apellido:   record[1],
 			Documento:  record[2],
@@ -43,7 +43,7 @@ func GetBets(betsFilepath string, batchSize int) []UserBet {
 			Numero:     record[4],
 		}
 
-		bets = append(bets, userBet)
+		bets = append(bets, bet)
 	}
 	return bets
 }

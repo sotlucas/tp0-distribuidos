@@ -72,7 +72,7 @@ func (c *Client) StartClientLoop() {
 
 	c.createClientSocket()
 
-	c.sendUserBets(bets)
+	c.sendBets(bets)
 	msg, err := bufio.NewReader(c.conn).ReadString('\n')
 	c.conn.Close()
 

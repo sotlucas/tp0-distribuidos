@@ -11,23 +11,23 @@ import (
 const LEN_BYTES int = 4
 const BET_DELIMITER string = ";"
 
-// Sends a slice of UserBet to the server
-func (c *Client) sendUserBets(userBet []utils.UserBet) {
-	payloadBytes := serialize(c.config.ID, userBet)
+// Sends a slice of Bet to the server
+func (c *Client) sendBets(bet []utils.Bet) {
+	payloadBytes := serialize(c.config.ID, bet)
 	c.conn.Write(payloadBytes)
 }
 
-// Serializes a slice of UserBet into a byte array
-func serialize(clientId string, userBet []utils.UserBet) []byte {
-	payloadBytes := buildPayload(userBet, clientId)
+// Serializes a slice of Bet into a byte array
+func serialize(clientId string, bets []utils.Bet) []byte {
+	payloadBytes := buildPayload(bets, clientId)
 	lengthBytes := buildLength(len(payloadBytes))
 	return append(lengthBytes, payloadBytes...)
 }
 
 // Builds the payload of the message into a byte array
-func buildPayload(userBet []utils.UserBet, clientId string) []byte {
-	payload := make([]string, 0, len(userBet))
-	for _, bet := range userBet {
+func buildPayload(bets []utils.Bet, clientId string) []byte {
+	payload := make([]string, 0, len(bets))
+	for _, bet := range bets {
 		betStr := fmt.Sprintf(
 			"%s:%s:%s:%s:%s:%s",
 			clientId,
