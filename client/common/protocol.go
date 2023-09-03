@@ -2,16 +2,27 @@ package common
 
 import "fmt"
 
-func (c *Client) sendUserBet(userBet UserBet) {
-	payload := fmt.Sprintf(
-		"%s:%s:%s:%s:%s:%s",
-		c.config.ID,
-		userBet.Nombre,
-		userBet.Apellido,
-		userBet.Documento,
-		userBet.Nacimiento,
-		userBet.Numero,
-	)
+// Sends a slice of UserBet to the server
+func (c *Client) sendUserBets(userBet []UserBet) {
+	payloadBytes := serialize(c.config.ID, userBet)
+	c.conn.Write(payloadBytes)
+}
+
+// Serializes a slice of UserBet into a byte array
+func serialize(clientId string, userBet []UserBet) []byte {
+	payload := ""
+	for _, bet := range userBet {
+		betStr := fmt.Sprintf(
+			"%s:%s:%s:%s:%s:%s",
+			clientId,
+			bet.Nombre,
+			bet.Apellido,
+			bet.Documento,
+			bet.Nacimiento,
+			bet.Numero,
+		)
+		payload += betStr + ";"
+	}
 
 	payloadBytes := []byte(payload)
 	payloadLength := len(payloadBytes)
@@ -22,6 +33,5 @@ func (c *Client) sendUserBet(userBet UserBet) {
 		lengthBytes = append([]byte("0"), lengthBytes...)
 	}
 
-	payloadBytes = append(lengthBytes, payloadBytes...)
-	c.conn.Write(payloadBytes)
+	return append(lengthBytes, payloadBytes...)
 }

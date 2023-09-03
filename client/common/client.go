@@ -76,40 +76,35 @@ func (c *Client) shutdownClient() {
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	for _, userBet := range getBets(c.config.BetsFilepath, c.config.BatchSize) {
-		c.createClientSocket()
+	// TODO: loopear todos los batches
+	bets := getBets(c.config.BetsFilepath, c.config.BatchSize)
 
-		c.sendUserBet(userBet)
-		msg, err := bufio.NewReader(c.conn).ReadString('\n')
-		c.conn.Close()
+	c.createClientSocket()
 
-		if err != nil {
-			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-				c.config.ID,
-				err,
-			)
-			return
-		}
-		log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
+	c.sendUserBets(bets)
+	msg, err := bufio.NewReader(c.conn).ReadString('\n')
+	c.conn.Close()
+
+	if err != nil {
+		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
 			c.config.ID,
-			msg,
+			err,
 		)
-
-		if msg == "OK\n" {
-			log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
-				userBet.Documento,
-				userBet.Numero,
-			)
-		} else {
-			log.Errorf("action: apuesta_enviada | result: fail | dni: %v | numero: %v",
-				userBet.Documento,
-				userBet.Numero,
-			)
-		}
-
-		// Wait a time between sending one message and the next one
-		time.Sleep(c.config.LoopPeriod)
+		return
 	}
+	log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
+		c.config.ID,
+		msg,
+	)
+
+	if msg == "OK\n" {
+		log.Infof("action: apuestas_enviadas | result: success")
+	} else {
+		log.Errorf("action: apuestas_enviadas | result: fail")
+	}
+
+	// Wait a time between sending one message and the next one
+	time.Sleep(c.config.LoopPeriod)
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
 }

@@ -40,12 +40,12 @@ class Server:
         """
         try:
             msg = protocol.read_message(client_sock)
-            bet = utils.bet_from_string(msg)
+            bets = utils.bets_from_string(msg)
 
-            utils.store_bets([bet])
+            utils.store_bets(bets)
 
             logging.info(
-                f"action: apuesta_almacenada | result: success | client_id: {bet.agency} | dni: {bet.document} | numero: {bet.number}"
+                f"action: apuestas_almacenadas | result: success | client_id: {bets[0].agency}"
             )
 
             protocol.send_ok(client_sock)
