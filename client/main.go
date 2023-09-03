@@ -99,8 +99,9 @@ func main() {
 		ServerAddress: v.GetString("server.address"),
 		ID:            v.GetString("id"),
 		LoopPeriod:    v.GetDuration("loop.period"),
+		BetsFilepath:  v.GetString("bets_filepath"),
 	}
 
 	client := common.NewClient(clientConfig)
-	client.StartClientLoop(v.GetString("bets_filepath"))
+	client.StartClientLoop()
 }

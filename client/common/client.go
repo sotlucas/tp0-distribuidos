@@ -18,6 +18,7 @@ type ClientConfig struct {
 	ID            string
 	ServerAddress string
 	LoopPeriod    time.Duration
+	BetsFilepath  string
 }
 
 type UserBet struct {
@@ -73,8 +74,8 @@ func (c *Client) shutdownClient() {
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop(betsFilepath string) {
-	for _, userBet := range getBets(betsFilepath) {
+func (c *Client) StartClientLoop() {
+	for _, userBet := range getBets(c.config.BetsFilepath) {
 		c.createClientSocket()
 
 		c.sendUserBet(userBet)
