@@ -40,7 +40,7 @@ class Server:
         """
         try:
             msg = protocol.read_message(client_sock)
-            bets = utils.bets_from_string(msg)
+            bets = protocol.bets_from_string(msg)
 
             utils.store_bets(bets)
 
