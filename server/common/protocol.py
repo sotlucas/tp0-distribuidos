@@ -12,11 +12,12 @@ def read_message(client_sock) -> str:
     Reads a bet message from a specific client socket
     """
     addr = client_sock.getpeername()
-    length = client_sock.recv(LEN_BYTES).decode("utf-8")
+    length_bytes = client_sock.recv(LEN_BYTES)
+    length = int.from_bytes(length_bytes, "big")
     msg = client_sock.recv(int(length)).decode("utf-8")
 
     logging.info(
-        f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg}"
+        f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg} | length: {length}"
     )
 
     return msg

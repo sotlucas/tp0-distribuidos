@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 )
@@ -34,11 +35,8 @@ func serialize(clientId string, userBet []UserBet) []byte {
 	payloadBytes := []byte(payloadStr)
 	payloadLength := len(payloadBytes)
 
-	lengthBytes := []byte(fmt.Sprintf("%d", payloadLength))
-	// Pad length to 4 bytes with leading zeros
-	for len(lengthBytes) < LEN_BYTES {
-		lengthBytes = append([]byte("0"), lengthBytes...)
-	}
+	lengthBytes := make([]byte, LEN_BYTES)
+	binary.BigEndian.PutUint32(lengthBytes, uint32(payloadLength))
 
 	return append(lengthBytes, payloadBytes...)
 }

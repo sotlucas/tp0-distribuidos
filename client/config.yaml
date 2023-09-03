@@ -4,6 +4,6 @@ server:
 loop:
   period: "5s"
 batch:
-  size: 5
+  size: 150
 log:
   level: "info"
