@@ -1,6 +1,12 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+
+const LEN_BYTES int = 4
+const BET_DELIMITER string = ";"
 
 // Sends a slice of UserBet to the server
 func (c *Client) sendUserBets(userBet []UserBet) {
@@ -10,7 +16,7 @@ func (c *Client) sendUserBets(userBet []UserBet) {
 
 // Serializes a slice of UserBet into a byte array
 func serialize(clientId string, userBet []UserBet) []byte {
-	payload := ""
+	payload := make([]string, 0, len(userBet))
 	for _, bet := range userBet {
 		betStr := fmt.Sprintf(
 			"%s:%s:%s:%s:%s:%s",
@@ -21,15 +27,16 @@ func serialize(clientId string, userBet []UserBet) []byte {
 			bet.Nacimiento,
 			bet.Numero,
 		)
-		payload += betStr + ";"
+		payload = append(payload, betStr)
 	}
+	payloadStr := strings.Join(payload, BET_DELIMITER)
 
-	payloadBytes := []byte(payload)
+	payloadBytes := []byte(payloadStr)
 	payloadLength := len(payloadBytes)
 
 	lengthBytes := []byte(fmt.Sprintf("%d", payloadLength))
 	// Pad length to 4 bytes with leading zeros
-	for len(lengthBytes) < 4 {
+	for len(lengthBytes) < LEN_BYTES {
 		lengthBytes = append([]byte("0"), lengthBytes...)
 	}
 

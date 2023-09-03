@@ -24,18 +24,6 @@ class Bet:
         self.birthdate = datetime.date.fromisoformat(birthdate)
         self.number = int(number)
 
-"""
-Parses a bet string into a Bet object
-"""
-def bet_from_string(bet_str: str) -> Bet:
-    return Bet(*bet_str.split(":"))
-
-"""
-Parses a bet string into a list of Bet objects
-"""
-def bets_from_string(bets_str: str) -> list[Bet]:
-    return [bet_from_string(bet_str) for bet_str in bets_str.split(";") if bet_str]
-
 """ Checks whether a bet won the prize or not. """
 def has_won(bet: Bet) -> bool:
     return bet.number == LOTTERY_WINNER_NUMBER
