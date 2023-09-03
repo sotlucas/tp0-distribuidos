@@ -17,6 +17,13 @@ func (c *Client) sendUserBets(userBet []UserBet) {
 
 // Serializes a slice of UserBet into a byte array
 func serialize(clientId string, userBet []UserBet) []byte {
+	payloadBytes := buildPayload(userBet, clientId)
+	lengthBytes := buildLength(len(payloadBytes))
+	return append(lengthBytes, payloadBytes...)
+}
+
+// Builds the payload of the message into a byte array
+func buildPayload(userBet []UserBet, clientId string) []byte {
 	payload := make([]string, 0, len(userBet))
 	for _, bet := range userBet {
 		betStr := fmt.Sprintf(
@@ -31,12 +38,12 @@ func serialize(clientId string, userBet []UserBet) []byte {
 		payload = append(payload, betStr)
 	}
 	payloadStr := strings.Join(payload, BET_DELIMITER)
+	return []byte(payloadStr)
+}
 
-	payloadBytes := []byte(payloadStr)
-	payloadLength := len(payloadBytes)
-
+// Builds the length of the payload into a byte array
+func buildLength(payloadLength int) []byte {
 	lengthBytes := make([]byte, LEN_BYTES)
 	binary.BigEndian.PutUint32(lengthBytes, uint32(payloadLength))
-
-	return append(lengthBytes, payloadBytes...)
+	return lengthBytes
 }
