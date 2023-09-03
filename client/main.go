@@ -33,13 +33,8 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("id")
 	v.BindEnv("server", "address")
 	v.BindEnv("loop", "period")
-	v.BindEnv("loop", "lapse")
 	v.BindEnv("log", "level")
-	v.BindEnv("nombre", "NOMBRE")
-	v.BindEnv("apellido", "APELLIDO")
-	v.BindEnv("documento", "DOCUMENTO")
-	v.BindEnv("nacimiento", "NACIMIENTO")
-	v.BindEnv("numero", "NUMERO")
+	v.BindEnv("bets_filepath", "BETS_FILEPATH")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -51,10 +46,6 @@ func InitConfig() (*viper.Viper, error) {
 	}
 
 	// Parse time.Duration variables and return an error if those variables cannot be parsed
-	if _, err := time.ParseDuration(v.GetString("loop.lapse")); err != nil {
-		return nil, errors.Wrapf(err, "Could not parse CLI_LOOP_LAPSE env var as time.Duration.")
-	}
-
 	if _, err := time.ParseDuration(v.GetString("loop.period")); err != nil {
 		return nil, errors.Wrapf(err, "Could not parse CLI_LOOP_PERIOD env var as time.Duration.")
 	}
@@ -83,11 +74,10 @@ func InitLogger(logLevel string) error {
 // PrintConfig Print all the configuration parameters of the program.
 // For debugging purposes only
 func PrintConfig(v *viper.Viper) {
-	logrus.Infof("action: config | result: success | client_id: %s | server_address: %s | loop_lapse: %v | loop_period: %v | log_level: %s",
+	logrus.Infof("action: config | result: success | client_id: %s | server_address: %s | bets_filepath: %s | log_level: %s",
 		v.GetString("id"),
+		v.GetString("bets_filepath"),
 		v.GetString("server.address"),
-		v.GetDuration("loop.lapse"),
-		v.GetDuration("loop.period"),
 		v.GetString("log.level"),
 	)
 }
@@ -108,18 +98,9 @@ func main() {
 	clientConfig := common.ClientConfig{
 		ServerAddress: v.GetString("server.address"),
 		ID:            v.GetString("id"),
-		LoopLapse:     v.GetDuration("loop.lapse"),
 		LoopPeriod:    v.GetDuration("loop.period"),
 	}
 
-	userBet := common.UserBet{
-		Nombre:     v.GetString("nombre"),
-		Apellido:   v.GetString("apellido"),
-		Documento:  v.GetString("documento"),
-		Nacimiento: v.GetString("nacimiento"),
-		Numero:     v.GetString("numero"),
-	}
-
 	client := common.NewClient(clientConfig)
-	client.StartClientLoop(userBet)
+	client.StartClientLoop(v.GetString("bets_filepath"))
 }

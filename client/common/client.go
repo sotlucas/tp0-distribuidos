@@ -2,6 +2,8 @@ package common
 
 import (
 	"bufio"
+	"encoding/csv"
+	"io"
 	"net"
 	"os"
 	"os/signal"
@@ -15,7 +17,6 @@ import (
 type ClientConfig struct {
 	ID            string
 	ServerAddress string
-	LoopLapse     time.Duration
 	LoopPeriod    time.Duration
 }
 
@@ -72,28 +73,12 @@ func (c *Client) shutdownClient() {
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop(userBet UserBet) {
-	// autoincremental msgID to identify every message sent
-	msgID := 1
-
-loop:
-	// Send messages if the loopLapse threshold has not been surpassed
-	for timeout := time.After(c.config.LoopLapse); ; {
-		select {
-		case <-timeout:
-			log.Infof("action: timeout_detected | result: success | client_id: %v",
-				c.config.ID,
-			)
-			break loop
-		default:
-		}
-
-		// Create the connection the server in every loop iteration. Send an
+func (c *Client) StartClientLoop(betsFilepath string) {
+	for _, userBet := range getBets(betsFilepath) {
 		c.createClientSocket()
 
 		c.sendUserBet(userBet)
 		msg, err := bufio.NewReader(c.conn).ReadString('\n')
-		msgID++
 		c.conn.Close()
 
 		if err != nil {
@@ -125,4 +110,37 @@ loop:
 	}
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
+}
+
+// Reads a batch of bets from a csv file
+func getBets(betsFilepath string) []UserBet {
+	f, err := os.Open(betsFilepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	csvReader := csv.NewReader(f)
+	n := 4 // TODO: sacar de environment variable
+	bets := make([]UserBet, 0)
+	for i := 0; i < n; i++ {
+		record, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		userBet := UserBet{
+			Nombre:     record[0],
+			Apellido:   record[1],
+			Documento:  record[2],
+			Nacimiento: record[3],
+			Numero:     record[4],
+		}
+
+		bets = append(bets, userBet)
+	}
+	return bets
 }
