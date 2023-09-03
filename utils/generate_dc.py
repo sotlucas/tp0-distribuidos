@@ -48,12 +48,14 @@ def client(file, id):
     file.write("    environment:\n")
     file.write(f"      - CLI_ID={id}\n")
     file.write("      - CLI_LOG_LEVEL=DEBUG\n")
+    file.write(f"      - BETS_FILEPATH=.data/agency-{id}.csv\n")
     file.write("    networks:\n")
     file.write("      - testing_net\n")
     file.write("    depends_on:\n")
     file.write("      - server\n")
     file.write("    volumes:\n")
     file.write("      - ./client/config.yaml:/config.yaml\n")
+    file.write("      - ./.data:/.data\n")
 
 
 def networks(file):
