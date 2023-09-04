@@ -7,7 +7,17 @@ BET_DELIMITER = ";"
 BET_PARAMS_DELIMITER = ":"
 
 
-def read_message(client_sock) -> str:
+class Message:
+    """
+    Represents a message sent by a client
+    """
+
+    def __init__(self, action: str, payload: str):
+        self.action = action
+        self.payload = payload
+
+
+def read_message(client_sock) -> Message:
     """
     Reads a bet message from a specific client socket
     """
@@ -20,7 +30,8 @@ def read_message(client_sock) -> str:
         f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg} | length: {length}"
     )
 
-    return msg
+    action, payload = msg.split("::")
+    return Message(action, payload)
 
 
 def send_ok(client_sock):

@@ -40,15 +40,24 @@ class Server:
         """
         try:
             msg = protocol.read_message(client_sock)
-            bets = protocol.bets_from_string(msg)
 
-            utils.store_bets(bets)
+            if msg.action == "BET":
+                bets = protocol.bets_from_string(msg.payload)
 
-            logging.info(
-                f"action: apuestas_almacenadas | result: success | client_id: {bets[0].agency}"
-            )
+                utils.store_bets(bets)
 
-            protocol.send_ok(client_sock)
+                logging.info(
+                    f"action: apuestas_almacenadas | result: success | client_id: {bets[0].agency}"
+                )
+
+                protocol.send_ok(client_sock)
+            elif msg.action == "FINISH":
+                # TODO: implementar
+                logging.info(
+                    f"action: finalizar_apuestas | result: success | client_id: {msg.payload}"
+                )
+
+                protocol.send_ok(client_sock)
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         except Exception as e:
