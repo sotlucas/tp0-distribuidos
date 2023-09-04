@@ -50,7 +50,9 @@ class Server:
 
             protocol.send_ok(client_sock)
         except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            logging.error(f"action: receive_message | result: fail | error: {e}")
+        except Exception as e:
+            logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
 

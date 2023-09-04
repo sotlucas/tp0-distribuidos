@@ -2,8 +2,8 @@
 server:
   address: "server:12345"
 loop:
-  period: "5s"
+  period: "500ms"
 batch:
-  size: 150
+  size: 130
 log:
   level: "info"

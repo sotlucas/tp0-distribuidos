@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 const LEN_BYTES int = 4
@@ -14,7 +15,22 @@ const BET_DELIMITER string = ";"
 // Sends a slice of Bet to the server
 func (c *Client) sendBets(bet []utils.Bet) {
 	payloadBytes := serialize(c.config.ID, bet)
-	c.conn.Write(payloadBytes)
+	sz, err := c.conn.Write(payloadBytes)
+	if err != nil {
+		log.Fatalf(
+			"action: send | result: fail | client_id: %v | sz: %v | error: %v",
+			c.config.ID,
+			sz,
+			err,
+		)
+	}
+	log.Debugf(
+		"action: send | result: success | client_id: %v | sz: %v | payload_size: %v | payload: %v",
+		c.config.ID,
+		sz,
+		len(payloadBytes),
+		string(payloadBytes),
+	)
 }
 
 // Serializes a slice of Bet into a byte array
