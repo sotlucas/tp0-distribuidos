@@ -95,7 +95,10 @@ func (c *Client) StartClientLoop() {
 		msg := c.askWinner()
 
 		if msg.Action == "WINNER" {
-			cantGanadores := len(strings.Split(msg.Payload, ";"))
+			cantGanadores := 0
+			if msg.Payload != "" {
+				cantGanadores = len(strings.Split(msg.Payload, ";"))
+			}
 			log.Infof("action: consulta_ganadores | result: success | client_id: %v | cant_ganadores: %v", c.config.ID, cantGanadores)
 			break
 		} else if msg.Action == "WINNERWAIT" {
