@@ -5,6 +5,8 @@ import signal
 import common.utils as utils
 import common.protocol as protocol
 
+WINNER_WAIT_TIME_IN_SECONDS = 5  # TODO: mover a configuracion
+
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -69,7 +71,7 @@ class Server:
             protocol.send_message(
                 client_sock,
                 "WINNERWAIT",
-                5,  # TODO: mover a constante o configuracion (5 segundos)
+                WINNER_WAIT_TIME_IN_SECONDS,
             )
         else:
             logging.info(f"action: sorteo | result: success")
