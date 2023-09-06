@@ -41,57 +41,65 @@ class Server:
         """
         try:
             msg = protocol.read_message(client_sock)
-
-            if msg.action == "BET":
-                bets = protocol.bets_from_string(msg.payload)
-
-                utils.store_bets(bets)
-
-                logging.info(
-                    f"action: apuestas_almacenadas | result: success | client_id: {bets[0].agency}"
-                )
-
-                protocol.send_ok(client_sock)
-            elif msg.action == "FINISH":
-                self._agencies_done[int(msg.payload) - 1] = True
-                logging.info(
-                    f"action: finalizar_apuestas | result: success | client_id: {msg.payload}"
-                )
-
-                protocol.send_ok(client_sock)
-            elif msg.action == "WINNER":
-                logging.info(
-                    f"action: ganadores | agencies_done: {self._agencies_done}"
-                )
-                if not all(self._agencies_done):
-                    logging.info(
-                        f"action: ganadores | result: fail | error: No todas las agencias han finalizado"
-                    )
-                    protocol.send_message(
-                        client_sock,
-                        "WINNERWAIT",
-                        5,  # TODO: mover a constante o configuracion (5 segundos)
-                    )
-                else:
-                    logging.info(f"action: sorteo | result: success")
-                    bets = utils.load_bets()
-                    winners = [
-                        bet
-                        for bet in bets
-                        if utils.has_won(bet) and bet.agency == int(msg.payload)
-                    ]
-                    logging.info(
-                        f"action: ganadores | result: success | winners: {str(winners)}"
-                    )
-                    protocol.send_message(
-                        client_sock, "WINNER", protocol.bets_to_string(winners)
-                    )
+            self.__handle_message(client_sock, msg)
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         except Exception as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
+
+    def __handle_message(self, client_sock, msg):
+        """
+        Handles a message from the client
+        """
+        if msg.action == "BET":
+            self.__handle_bet_message(client_sock, msg)
+        elif msg.action == "FINISH":
+            self.__handle_finish_message(client_sock, msg)
+        elif msg.action == "WINNER":
+            self.__handle_winner_message(client_sock, msg)
+
+    def __handle_winner_message(self, client_sock, msg):
+        logging.info(f"action: ganadores | agencies_done: {self._agencies_done}")
+        if not all(self._agencies_done):
+            logging.info(
+                f"action: ganadores | result: fail | error: No todas las agencias han finalizado"
+            )
+            protocol.send_message(
+                client_sock,
+                "WINNERWAIT",
+                5,  # TODO: mover a constante o configuracion (5 segundos)
+            )
+        else:
+            logging.info(f"action: sorteo | result: success")
+            bets = utils.load_bets()
+            winners = [
+                bet
+                for bet in bets
+                if utils.has_won(bet) and bet.agency == int(msg.payload)
+            ]
+            logging.info(
+                f"action: ganadores | result: success | winners: {str(winners)}"
+            )
+            protocol.send_message(
+                client_sock, "WINNER", protocol.bets_to_string(winners)
+            )
+
+    def __handle_finish_message(self, client_sock, msg):
+        self._agencies_done[int(msg.payload) - 1] = True
+        logging.info(
+            f"action: finalizar_apuestas | result: success | client_id: {msg.payload}"
+        )
+        protocol.send_ok(client_sock)
+
+    def __handle_bet_message(self, client_sock, msg):
+        bets = protocol.bets_from_string(msg.payload)
+        utils.store_bets(bets)
+        logging.info(
+            f"action: apuestas_almacenadas | result: success | client_id: {bets[0].agency}"
+        )
+        protocol.send_ok(client_sock)
 
     def __accept_new_connection(self):
         """
