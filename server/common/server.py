@@ -14,7 +14,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(("", port))
         self._server_socket.listen(listen_backlog)
-        self._agencies_done = [False, False]
+        self._agencies_done = [False, False, False, False, False]
 
     def run(self):
         """
