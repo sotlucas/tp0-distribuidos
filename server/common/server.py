@@ -14,6 +14,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(("", port))
         self._server_socket.listen(listen_backlog)
+        self._agencies_done = [False, False]
 
     def run(self):
         """
@@ -52,12 +53,39 @@ class Server:
 
                 protocol.send_ok(client_sock)
             elif msg.action == "FINISH":
-                # TODO: implementar
+                self._agencies_done[int(msg.payload) - 1] = True
                 logging.info(
                     f"action: finalizar_apuestas | result: success | client_id: {msg.payload}"
                 )
 
                 protocol.send_ok(client_sock)
+            elif msg.action == "WINNER":
+                logging.info(
+                    f"action: ganadores | agencies_done: {self._agencies_done}"
+                )
+                if not all(self._agencies_done):
+                    logging.info(
+                        f"action: ganadores | result: fail | error: No todas las agencias han finalizado"
+                    )
+                    protocol.send_message(
+                        client_sock,
+                        "WINNERWAIT",
+                        5,  # TODO: mover a constante o configuracion (5 segundos)
+                    )
+                else:
+                    logging.info(f"action: sorteo | result: success")
+                    bets = utils.load_bets()
+                    winners = [
+                        bet
+                        for bet in bets
+                        if utils.has_won(bet) and bet.agency == int(msg.payload)
+                    ]
+                    logging.info(
+                        f"action: ganadores | result: success | winners: {str(winners)}"
+                    )
+                    protocol.send_message(
+                        client_sock, "WINNER", protocol.bets_to_string(winners)
+                    )
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         except Exception as e:

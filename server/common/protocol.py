@@ -41,6 +41,16 @@ def send_ok(client_sock):
     client_sock.send("OK\n".encode("utf-8"))
 
 
+def send_message(client_sock, action: str, payload: str):
+    """
+    Send message to client
+    """
+    msg = f"{action}::{payload}"
+    length = len(msg)
+    client_sock.send(length.to_bytes(LEN_BYTES, "big"))
+    client_sock.send(msg.encode("utf-8"))
+
+
 def bet_from_string(bet_str: str) -> Bet:
     """
     Parses a bet string into a Bet object
@@ -55,3 +65,10 @@ def bets_from_string(bets_str: str) -> list[Bet]:
     return [
         bet_from_string(bet_str) for bet_str in bets_str.split(BET_DELIMITER) if bet_str
     ]
+
+
+def bets_to_string(bets: list[Bet]) -> str:
+    """
+    Parses a list of Bet objects into a bet string
+    """
+    return BET_DELIMITER.join([str(bet) for bet in bets])

@@ -13,6 +13,11 @@ import (
 const LEN_BYTES int = 4
 const BET_DELIMITER string = ";"
 
+type Message struct {
+	Action  string
+	Payload string
+}
+
 // Sends a slice of Bet to the server
 func (c *Client) sendBets(bet []utils.Bet) {
 	c.createClientSocket()
@@ -62,7 +67,7 @@ func (c *Client) sendBets(bet []utils.Bet) {
 func (c *Client) sendFinish() {
 	c.createClientSocket()
 
-	action := []byte("FINISH::")
+	action := []byte(fmt.Sprintf("FINISH::%s", c.config.ID))
 	lengthBytes := buildLength(len(action))
 	msg := append(lengthBytes, action...)
 	sz, err := c.conn.Write(msg)
@@ -94,6 +99,65 @@ func (c *Client) sendFinish() {
 		log.Infof("action: fin_envio_apuestas | result: success")
 	} else {
 		log.Errorf("action: fin_envio_apuestas | result: fail")
+	}
+}
+
+func (c *Client) askWinner() Message {
+	c.createClientSocket()
+
+	action := []byte(fmt.Sprintf("WINNER::%s", c.config.ID))
+	length := buildLength(len(action))
+	msg := append(length, action...)
+	sz, err := c.conn.Write(msg)
+	if err != nil {
+		log.Fatalf(
+			"action: send | result: fail | client_id: %v | sz: %v | error: %v",
+			c.config.ID,
+			sz,
+			err,
+		)
+	}
+
+	// Read exactly 4 bytes
+	length = make([]byte, LEN_BYTES)
+	_, err = c.conn.Read(length)
+	if err != nil {
+		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
+			c.config.ID,
+			err,
+		)
+		return Message{}
+	}
+	lengthInt := int(binary.BigEndian.Uint32(length))
+
+	// Read exactly lengthInt bytes
+	resBytes := make([]byte, lengthInt)
+	_, err = c.conn.Read(resBytes)
+	if err != nil {
+		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
+			c.config.ID,
+			err,
+		)
+		return Message{}
+	}
+	res := string(resBytes)
+	c.conn.Close()
+
+	// Separate the payload from the action
+	split := strings.Split(res, "::")
+	if len(split) != 2 {
+		log.Errorf("action: receive_message | result: fail")
+		return Message{}
+	}
+
+	log.Debugf("action: receive_message | result: success | client_id: %v | msg: %v",
+		c.config.ID,
+		res,
+	)
+
+	return Message{
+		Action:  split[0],
+		Payload: split[1],
 	}
 }
 

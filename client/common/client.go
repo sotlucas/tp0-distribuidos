@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -89,6 +90,24 @@ func (c *Client) StartClientLoop() {
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
 	c.sendFinish()
+
+	for {
+		msg := c.askWinner()
+
+		if msg.Action == "WINNER" {
+			cantGanadores := len(strings.Split(msg.Payload, ";"))
+			log.Infof("action: consulta_ganadores | result: success | client_id: %v | cant_ganadores: %v", c.config.ID, cantGanadores)
+			break
+		} else if msg.Action == "WINNERWAIT" {
+			log.Infof("action: winner | result: in_progress | client_id: %v | msg: %v", c.config.ID, msg.Payload)
+			waitTime, _ := time.ParseDuration(msg.Payload + "s")
+			time.Sleep(waitTime) // TODO: modificar para que no sea busy wait
+		} else {
+			log.Errorf("action: winner | result: fail | client_id: %v", c.config.ID)
+			break
+		}
+
+	}
 }
 
 func nextBatch(csvReader *csv.Reader, batchSize int) ([]utils.Bet, bool) {
