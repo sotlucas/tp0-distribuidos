@@ -20,8 +20,6 @@ type Message struct {
 
 // Sends a slice of Bet to the server
 func (c *Client) sendBets(bet []utils.Bet) {
-	c.createClientSocket()
-
 	payloadBytes := serialize(c.config.ID, bet)
 	sz, err := c.conn.Write(payloadBytes)
 	if err != nil {
@@ -41,7 +39,6 @@ func (c *Client) sendBets(bet []utils.Bet) {
 	)
 
 	msg, err := bufio.NewReader(c.conn).ReadString('\n')
-	c.conn.Close()
 
 	if err != nil {
 		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
@@ -65,8 +62,6 @@ func (c *Client) sendBets(bet []utils.Bet) {
 // Sends a FINISH message to the server indicating that the client
 // has finished sending bets
 func (c *Client) sendFinish() {
-	c.createClientSocket()
-
 	action := []byte(fmt.Sprintf("FINISH::%s", c.config.ID))
 	lengthBytes := buildLength(len(action))
 	msg := append(lengthBytes, action...)
@@ -81,7 +76,6 @@ func (c *Client) sendFinish() {
 	}
 
 	res, err := bufio.NewReader(c.conn).ReadString('\n')
-	c.conn.Close()
 
 	if err != nil {
 		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",

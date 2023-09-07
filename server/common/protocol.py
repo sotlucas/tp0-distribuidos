@@ -30,6 +30,9 @@ def read_message(client_sock) -> Message:
         f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg} | length: {length}"
     )
 
+    if not msg:
+        return None
+
     action, payload = msg.split("::")
     return Message(action, payload)
 
