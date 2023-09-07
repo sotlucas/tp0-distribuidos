@@ -1,5 +1,29 @@
 # Informe TP0
 
+## Parte 1: Docker
+
+### Ejercicio 1.1
+
+Se creó el script `generate_dc.py` que genera un archivo `docker-compose-dev.yaml` con la configuración de los servicios. El script recibe como parámetro la cantidad de clientes que se quieren levantar.
+
+El mismo se puede ejecutar con el siguiente comando (para 5 clientes):
+
+```bash
+$ python3 ./utils/generate_dc.py 5
+```
+
+### Ejercicio 3
+
+El script `check_server.sh` se puede utilizar para corroborar que el servidor está funcionando correctamente.
+
+Para ello, levanta un contenedor con alpine linux, el cuál se conecta a la misma red que el servidor. Luego, utiliza netcat para conectarse al servidor y enviarle un mensaje de prueba. Si el servidor responde con el mismo mensaje, entonces se considera que el servidor está funcionando correctamente (considerando que a este punto el servidor funciona como un echo server).
+
+El mismo se puede ejecutar con el siguiente comando:
+
+```bash
+$ ./utils/check_server.sh
+```
+
 ## Parte 2: Comunicación
 
 El protocolo de comunicación utilizado es el siguiente:
