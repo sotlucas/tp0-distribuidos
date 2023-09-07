@@ -1,3 +1,4 @@
+import errno
 import socket
 import logging
 import signal
@@ -54,7 +55,10 @@ class Server:
                 else:
                     self.__handle_message(client_sock, msg)
             except OSError as e:
-                logging.error(f"action: receive_message | result: fail | error: {e}")
+                if e.errno != errno.ECONNRESET:
+                    logging.error(
+                        f"action: receive_message | result: fail | error: {e}"
+                    )
                 connected = False
             except Exception as e:
                 logging.error(f"action: receive_message | result: fail | error: {e}")
@@ -73,7 +77,9 @@ class Server:
             self.__handle_winner_message(client_sock, msg)
 
     def __handle_winner_message(self, client_sock, msg):
-        logging.info(f"action: ganadores | agencies_done: {self._agencies_done}")
+        logging.info(
+            f"action: consulta_ganadores | agencies_done: {self._agencies_done}"
+        )
         if not all(self._agencies_done):
             logging.info(
                 f"action: consulta_ganadores | msg: No todas las agencias han finalizado"
