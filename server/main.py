@@ -26,7 +26,8 @@ def initialize_config():
         config_params["port"] = int(os.getenv('SERVER_PORT', config["DEFAULT"]["SERVER_PORT"]))
         config_params["listen_backlog"] = int(os.getenv('SERVER_LISTEN_BACKLOG', config["DEFAULT"]["SERVER_LISTEN_BACKLOG"]))
         config_params["logging_level"] = os.getenv('LOGGING_LEVEL', config["DEFAULT"]["LOGGING_LEVEL"])
-        config_params["winner_wait_time_seconds"] = os.getenv('WINNER_WAIT_TIME_SECONDS', config["DEFAULT"]["WINNER_WAIT_TIME_SECONDS"])
+        config_params["winner_wait_time_seconds"] = int(os.getenv('WINNER_WAIT_TIME_SECONDS', config["DEFAULT"]["WINNER_WAIT_TIME_SECONDS"]))
+        config_params["agencies"] = int(os.getenv('AGENCIES', config["DEFAULT"]["AGENCIES"]))
     except KeyError as e:
         raise KeyError("Key was not found. Error: {} .Aborting server".format(e))
     except ValueError as e:
@@ -41,6 +42,7 @@ def main():
     port = config_params["port"]
     listen_backlog = config_params["listen_backlog"]
     winner_wait_time_seconds = config_params["winner_wait_time_seconds"]
+    agencies = config_params["agencies"]
 
     initialize_log(logging_level)
 
@@ -48,7 +50,7 @@ def main():
     # of the component
     logging.debug(f"action: config | result: success | port: {port} | "
                   f"listen_backlog: {listen_backlog} | logging_level: {logging_level} | "
-                  f"winner_wait_time_seconds: {winner_wait_time_seconds}")
+                  f"winner_wait_time_seconds: {winner_wait_time_seconds} | agencies: {agencies}")
 
     # Initialize server and start server loop
     server = Server(config_params)

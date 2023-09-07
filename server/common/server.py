@@ -16,7 +16,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(("", config_params["port"]))
         self._server_socket.listen(config_params["listen_backlog"])
-        self._agencies_done = [False, False, False, False, False]
+        self._agencies = config_params["agencies"]
         self._file_lock = threading.Lock()
         self._winner_wait_time_seconds = config_params["winner_wait_time_seconds"]
 
@@ -77,11 +77,11 @@ class Server:
 
     def __handle_winner_message(self, client_sock, msg):
         logging.info(
-            f"action: consulta_ganadores | agencies_done: {self._agencies_done}"
+            f"action: consulta_ganadores | agencies_restantes: {self._agencies}"
         )
-        if not all(self._agencies_done):
+        if self._agencies > 0:
             logging.info(
-                f"action: consulta_ganadores | msg: No todas las agencias han finalizado"
+                f"action: consulta_ganadores | result: in_progress | client_id: {msg.payload} | msg: No todas las agencias han finalizado"
             )
             protocol.send_message(
                 client_sock,
@@ -105,12 +105,12 @@ class Server:
             )
 
     def __handle_finish_message(self, client_sock, msg):
-        self._agencies_done[int(msg.payload) - 1] = True
+        self._agencies -= 1
         logging.info(
             f"action: finalizar_apuestas | result: success | client_id: {msg.payload}"
         )
         protocol.send_ok(client_sock)
-        if all(self._agencies_done):
+        if self._agencies <= 0:
             logging.info(f"action: sorteo | result: success")
 
     def __handle_bet_message(self, client_sock, msg):
