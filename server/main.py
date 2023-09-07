@@ -51,7 +51,7 @@ def main():
                   f"winner_wait_time_seconds: {winner_wait_time_seconds}")
 
     # Initialize server and start server loop
-    server = Server(port, listen_backlog, winner_wait_time_seconds)
+    server = Server(config_params)
     server.run()
 
 def initialize_log(logging_level):

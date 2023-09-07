@@ -9,16 +9,16 @@ import common.protocol as protocol
 
 
 class Server:
-    def __init__(self, port, listen_backlog, winner_wait_time_seconds):
+    def __init__(self, config_params):
         self._running = True
         signal.signal(signal.SIGTERM, self.__shutdown)
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._server_socket.bind(("", port))
-        self._server_socket.listen(listen_backlog)
+        self._server_socket.bind(("", config_params["port"]))
+        self._server_socket.listen(config_params["listen_backlog"])
         self._agencies_done = [False, False, False, False, False]
         self._file_lock = threading.Lock()
-        self._winner_wait_time_seconds = winner_wait_time_seconds
+        self._winner_wait_time_seconds = config_params["winner_wait_time_seconds"]
 
     def run(self):
         """
