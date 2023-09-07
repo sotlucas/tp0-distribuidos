@@ -7,11 +7,9 @@ import threading
 import common.utils as utils
 import common.protocol as protocol
 
-WINNER_WAIT_TIME_IN_SECONDS = 5  # TODO: mover a configuracion
-
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, winner_wait_time_seconds):
         self._running = True
         signal.signal(signal.SIGTERM, self.__shutdown)
         # Initialize server socket
@@ -20,6 +18,7 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._agencies_done = [False, False, False, False, False]
         self._file_lock = threading.Lock()
+        self._winner_wait_time_seconds = winner_wait_time_seconds
 
     def run(self):
         """
@@ -87,7 +86,7 @@ class Server:
             protocol.send_message(
                 client_sock,
                 "WINNERWAIT",
-                WINNER_WAIT_TIME_IN_SECONDS,
+                self._winner_wait_time_seconds,
             )
         else:
             self._file_lock.acquire()

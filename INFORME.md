@@ -61,3 +61,5 @@ Un mensaje de apuestas con 2 apuestas:
 Para la concurrencia se utilizó el módulo _multithreading_ en el servidor. Por cada cliente que se conecta se crea un nuevo thread que se encarga de procesar los mensajes del cliente. El thread principal se encarga de aceptar las conexiones entrantes y crear los threads de los clientes.
 
 Luego, cuando se requiere acceder al archivo de apuestas, se utiliza un _lock_ para evitar que dos threads accedan al mismo tiempo al archivo (tanto al momento de lectura como de escritura).
+
+La sincronización para obtener los resultados del sorteo se realiza haciendo _polling_ desde el cliente. Si el servidor no tiene los resultados, responde con un mensaje indicando el tiempo de espera que debe esperar el cliente para volver a consultar. Si el servidor tiene los resultados, responde con un mensaje con los ganadores. El tiempo de espera es fijo y configurable en el servidor.
