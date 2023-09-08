@@ -17,6 +17,7 @@ class Server:
         self._server_socket.bind(("", config_params["port"]))
         self._server_socket.listen(config_params["listen_backlog"])
         self._agencies = config_params["agencies"]
+        self._agencies_lock = threading.Lock()
         self._file_lock = threading.Lock()
         self._winner_wait_time_seconds = config_params["winner_wait_time_seconds"]
 
@@ -76,6 +77,7 @@ class Server:
             self.__handle_winner_message(client_sock, msg)
 
     def __handle_winner_message(self, client_sock, msg):
+        self._agencies_lock.acquire()
         logging.info(
             f"action: consulta_ganadores | agencies_restantes: {self._agencies}"
         )
@@ -103,8 +105,10 @@ class Server:
             protocol.send_message(
                 client_sock, "WINNER", protocol.bets_to_string(winners)
             )
+        self._agencies_lock.release()
 
     def __handle_finish_message(self, client_sock, msg):
+        self._agencies_lock.acquire()
         self._agencies -= 1
         logging.info(
             f"action: finalizar_apuestas | result: success | client_id: {msg.payload}"
@@ -112,6 +116,7 @@ class Server:
         protocol.send_ok(client_sock)
         if self._agencies <= 0:
             logging.info(f"action: sorteo | result: success")
+        self._agencies_lock.release()
 
     def __handle_bet_message(self, client_sock, msg):
         bets = protocol.bets_from_string(msg.payload)
