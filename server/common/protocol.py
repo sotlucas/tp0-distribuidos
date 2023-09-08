@@ -17,14 +17,27 @@ class Message:
         self.payload = payload
 
 
+def recv_wrapper(client_sock, length: int) -> str:
+    """
+    Wrapper around recv to prevent short reads
+    """
+    msg = b""
+    while len(msg) < length:
+        chunk = client_sock.recv(length - len(msg))
+        if not chunk:
+            raise RuntimeError("Socket connection broken")
+        msg += chunk
+    return msg
+
+
 def read_message(client_sock) -> Message:
     """
     Reads a bet message from a specific client socket
     """
     addr = client_sock.getpeername()
-    length_bytes = client_sock.recv(LEN_BYTES)
+    length_bytes = recv_wrapper(client_sock, LEN_BYTES)
     length = int.from_bytes(length_bytes, "big")
-    msg = client_sock.recv(int(length)).decode("utf-8")
+    msg = recv_wrapper(client_sock, length).decode("utf-8")
 
     logging.debug(
         f"action: receive_message | result: success | ip: {addr[0]} | msg: {msg} | length: {length}"
@@ -41,7 +54,7 @@ def send_ok(client_sock):
     """
     Send OK message to client
     """
-    client_sock.send("OK\n".encode("utf-8"))
+    client_sock.sendall("OK\n".encode("utf-8"))
 
 
 def send_message(client_sock, action: str, payload: str):
@@ -50,8 +63,8 @@ def send_message(client_sock, action: str, payload: str):
     """
     msg = f"{action}::{payload}"
     length = len(msg)
-    client_sock.send(length.to_bytes(LEN_BYTES, "big"))
-    client_sock.send(msg.encode("utf-8"))
+    client_sock.sendall(length.to_bytes(LEN_BYTES, "big"))
+    client_sock.sendall(msg.encode("utf-8"))
 
 
 def bet_from_string(bet_str: str) -> Bet:
