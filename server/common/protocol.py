@@ -17,7 +17,7 @@ class Message:
         self.payload = payload
 
 
-def recv_wrapper(client_sock, length: int) -> str:
+def recv_wrapper(client_sock, length: int):
     """
     Wrapper around recv to prevent short reads
     """
@@ -25,7 +25,7 @@ def recv_wrapper(client_sock, length: int) -> str:
     while len(msg) < length:
         chunk = client_sock.recv(length - len(msg))
         if not chunk:
-            raise RuntimeError("Socket connection broken")
+            raise ConnectionError
         msg += chunk
     return msg
 

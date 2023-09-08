@@ -54,6 +54,8 @@ class Server:
                     connected = False
                 else:
                     self.__handle_message(client_sock, msg)
+            except ConnectionError:
+                connected = False
             except OSError as e:
                 if e.errno != errno.ECONNRESET:
                     logging.error(
